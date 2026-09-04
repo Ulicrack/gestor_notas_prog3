@@ -1,89 +1,100 @@
-"use client";
+"use client"
+import { useState } from 'react'
+import { useNotes } from '../NotesContext'
+import { useRouter } from 'next/navigation'
 
-import React, { useState } from 'react'
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import Link from 'next/link'
+import React from 'react'
 
-function Page() {
-  const router = useRouter();
+function CreateNotePage() {
+  const router = useRouter()
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState("general");
+
+
+  const { addNote, getDynamicCategories } = useNotes()
+
+  const categories = getDynamicCategories()
+
+  const [formData, setFormData] = useState({
+    title: "",
+    content: "",
+    ejemplo: "",
+    categoryId: 1
+  })
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    // traer notas actuales
-    const notes = JSON.parse(localStorage.getItem("notes")) || [];
+    if (!formData.title || !formData.content) return alert("Title and content are required")
 
-    // generar nuevo id (simple)
-    const lastId = notes.length > 0 
-      ? Math.max(...notes.map(n => n.id)) 
-      : 0;
+    addNote(formData)
+    router.push("/notes")
+  }
 
-    const newNote = {
-      id: lastId + 1,
-      title,
-      content,
-      category
-    };
-
-    const updatedNotes = [...notes, newNote];
-
-    // guardar en localStorage
-    localStorage.setItem("notes", JSON.stringify(updatedNotes));
-
-    // redirigir a /notes
-    router.push("/notes");
-  };
 
   return (
     <section className='flex p-20 justify-center items-center w-full'>
-      <form 
-        onSubmit={handleSubmit}
-        className="flex flex-col flex-1 p-6 rounded-lg bg-zinc-800 font-sans"
-      >
+      <form className="flex flex-col flex-1  p-6 rounded-lg bg-zinc-800 font-sans">
 
-        <Link href={"/notes"} className="self-start bg-zinc-900 rounded-md p-2 mb-4 text-white font-semibold">
-          &larr; Back to notes
+        <Link href={"/notes"} className="self-start mb-4 text-white font-semibold">
+          &larr; Back to Notes
         </Link>
 
-        <p className='text-white text-3xl font-semibold'>create note</p>
-        
-        <input 
-          type="text" 
-          placeholder='Title' 
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className='p-2 bg-zinc-900 rounded-md my-4 text-white'
-        />
+        <p className="text-white text-lg font-semibold">Create Note</p>
+        <div className='mt-10 flex flex-col gap-3'>
 
-        <textarea 
-          placeholder="Content" 
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className='p-2 bg-zinc-900 rounded-md my-4 text-white' 
-          rows={10} 
-        />
+          <div className='flex flex-col'>
+            <label className='text-zinc-400'>Title</label>
+            <input
+              type="text"
+              placeholder='Title'
+              className='p-2 border border-zinc-600 rounded-md my-4'
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
+          </div>
 
-        <select 
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className='p-2 bg-zinc-900 rounded-md my-4 text-white'>
+          <div className='flex flex-col'>
+            <label className='text-zinc-400'>Category</label>
+            <select
+              className='cursor-pointer p-2 border border-zinc-600 rounded-md my-4'
+              value={formData.categoryId}
+              onChange={(e) => setFormData({ ...formData, categoryId: String(e.target.value) })}
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>{category.title}</option>
+              ))}
+            </select>
+          </div>
 
-          <option value="general">General</option>
-          <option value="programacion">Programación</option>
-          <option value="estudio">Estudio</option>
-        </select>
+          <div className='flex flex-col'>
+            <label className='text-zinc-400'>Content</label>
+            <textarea
+              placeholder='Content'
+              className='p-2 border border-zinc-600 rounded-md my-4'
+              rows={10}
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+            />
+          </div>
 
-        <button className='bg-zinc-600 text-white p-2 rounded-md hover:bg-zinc-500'>
-          Save
-        </button>
-      
+          <div className='flex flex-col'>
+            <label className='text-zinc-400'>Ejemplo</label>
+            <textarea
+              placeholder='Const variable = ....'
+              className='p-2 border border-zinc-600 rounded-md my-4'
+              rows={10}
+              value={formData.ejemplo}
+              onChange={(e) => setFormData({ ...formData, ejemplo: e.target.value })}
+            />
+          </div>
+
+          <button onClick={handleSubmit} className='bg-blue-500 text-white p-2 rounded-md'>Save</button>
+        </div>
       </form>
+
     </section>
   )
 }
 
-export default Page
+export default CreateNotePage
